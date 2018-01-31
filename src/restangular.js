@@ -1122,8 +1122,16 @@
           var url = urlHandler.fetchUrl(this, what);
           var whatFetched = what || __this[config.restangularFields.route];
 
+          var httpConfig = _.extend({}, this[config.restangularFields.httpConfig] || {});
+          var canceller;
+          if (!httpConfig.timeout) {
+              canceller = $q.defer();
+              httpConfig.timeout = canceller.promise;
+			  deferred.promise.$cancelRequest = canceller.resolve;
+          }
+
           var request = config.fullRequestInterceptor(null, operation,
-            whatFetched, url, headers || {}, reqParams || {}, this[config.restangularFields.httpConfig] || {});
+            whatFetched, url, headers || {}, reqParams || {}, httpConfig);
 
           var filledArray = [];
           filledArray = config.transformElem(filledArray, true, whatFetched, service);
@@ -1259,8 +1267,16 @@
           if (_.isObject(callObj) && config.isRestangularized(callObj)) {
             callObj = stripRestangular(callObj);
           }
+          var httpConfig = _.extend({}, this[config.restangularFields.httpConfig] || {});
+          var canceller;
+          if (!httpConfig.timeout) {
+            canceller = $q.defer();
+            httpConfig.timeout = canceller.promise;
+            deferred.promise.$cancelRequest = canceller.resolve;
+          }
+
           var request = config.fullRequestInterceptor(callObj, operation, route, fetchUrl,
-            headers || {}, resParams || {}, this[config.restangularFields.httpConfig] || {});
+            headers || {}, resParams || {}, httpConfig);
 
           var filledObject = {};
           filledObject = config.transformElem(filledObject, false, route, service);
